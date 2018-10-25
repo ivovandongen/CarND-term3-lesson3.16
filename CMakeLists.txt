@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(TEMPLATE)
+project(GAUSSIAN_NAIVE_BAYES)
 
 set(CMAKE_CXX_STANDARD 14)
 
@@ -47,13 +47,16 @@ endif ()
 
 add_subdirectory(src)
 
+# Copy test data to output dir
+add_subdirectory(pred_data)
+
 # Main executable
 
-add_executable(Template
+add_executable(gnb
     ${CMAKE_SOURCE_DIR}/src/main.cpp
     )
 
-target_link_libraries(Template core)
+target_link_libraries(gnb core)
 
 
 # Tests

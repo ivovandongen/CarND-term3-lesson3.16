@@ -2,8 +2,8 @@
 git_include(Eigen)
 
 add_library(core STATIC
-    ${CMAKE_SOURCE_DIR}/src/core.hpp
-    ${CMAKE_SOURCE_DIR}/src/core.cpp
+    ${CMAKE_SOURCE_DIR}/src/classifier.h
+    ${CMAKE_SOURCE_DIR}/src/classifier.cpp
     )
 
 target_include_directories(core

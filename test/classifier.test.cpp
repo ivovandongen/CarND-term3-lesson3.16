@@ -1,10 +1,10 @@
 #include <test.hpp>
 
-#include <core.hpp>
+#include <classifier.h>
 
 #include <vector>
 
 TEST(Core, BasicTest) {
-    Core core;
+    GNB gnb;
     ASSERT_TRUE(true);
 }
