@@ -6,14 +6,8 @@
 #include <math.h>
 #include <vector>
 
-using namespace std;
-
 class GNB {
 public:
-
-    vector<string> possible_labels = {"left", "keep", "right"};
-
-
     /**
       * Constructor
       */
@@ -24,8 +18,10 @@ public:
      */
     virtual ~GNB();
 
-    void train(vector<vector<double> > data, vector<string> labels);
+    void train(std::vector<std::vector<double>> data, std::vector<std::string> labels);
 
-    string predict(vector<double>);
+    std::string predict(std::vector<double>);
 
+private:
+    std::vector<std::string> possible_labels = {"left", "keep", "right"};
 };

@@ -1,9 +1,10 @@
+#include "classifier.h"
+
 #include <iostream>
 #include <sstream>
 #include <fstream>
 #include <math.h>
 #include <vector>
-#include "classifier.h"
 
 /**
  * Initializes GNB
@@ -12,7 +13,7 @@ GNB::GNB() = default;
 
 GNB::~GNB() = default;
 
-void GNB::train(vector<vector<double>> data, vector<string> labels) {
+void GNB::train(std::vector<std::vector<double>> data, std::vector<std::string> labels) {
 
     /*
         Trains the classifier with N data points and labels.
@@ -32,7 +33,7 @@ void GNB::train(vector<vector<double>> data, vector<string> labels) {
     */
 }
 
-string GNB::predict(vector<double> sample) {
+std::string GNB::predict(std::vector<double> sample) {
     /*
         Once trained, this method is called and expected to return
         a predicted behavior for the given observation.
