@@ -127,8 +127,31 @@ std::string GNB::predict(std::vector<double> sample) {
         A label representing the best guess of the classifier. Can
         be one of "left", "keep" or "right".
         """
-        # TODO - complete this
     */
 
-    return this->possible_labels[1];
+    // Sanity checks
+    assert (sample.size() == n_params);
+
+    Eigen::ArrayXd probs = Eigen::ArrayXd::Ones(possible_labels.size());
+
+    for (size_t i = 0; i < possible_labels.size(); i++) {
+        const LabelStats &stats = statsPerLabel.at(possible_labels[i]);
+        for (size_t j = 0; j < sample.size(); j++) {
+            probs[i] *= (1.0 / sqrt(2.0 * M_PI * pow(stats.stddevs[j], 2))) *
+                        exp(-0.5 * pow(sample[j] - stats.means[j], 2) / pow(stats.stddevs[j], 2));
+        }
+
+        probs[i] *= stats.prior;
+    }
+
+    double max = -1;
+    size_t maxIndex = 0;
+    for (size_t i = 0; i < possible_labels.size(); i++) {
+        if (probs[i] > max) {
+            max = probs[i];
+            maxIndex = i;
+        }
+    }
+
+    return possible_labels[maxIndex];
 }
