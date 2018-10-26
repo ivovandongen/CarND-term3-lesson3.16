@@ -134,16 +134,21 @@ std::string GNB::predict(std::vector<double> sample) {
 
     Eigen::ArrayXd probs = Eigen::ArrayXd::Ones(possible_labels.size());
 
+    // Calculate conditional probabilities
     for (size_t i = 0; i < possible_labels.size(); i++) {
         const LabelStats &stats = statsPerLabel.at(possible_labels[i]);
-        for (size_t j = 0; j < sample.size(); j++) {
-            probs[i] *= (1.0 / sqrt(2.0 * M_PI * pow(stats.stddevs[j], 2))) *
-                        exp(-0.5 * pow(sample[j] - stats.means[j], 2) / pow(stats.stddevs[j], 2));
-        }
 
-        probs[i] *= stats.prior;
+        probs[i] = (
+                (1.0 / (2.0 * M_PI * stats.stddevs.square()).sqrt()) *
+                (
+                        -0.5 *
+                        (Eigen::ArrayXd::Map(sample.data(), sample.size()) - stats.means).square() /
+                        stats.stddevs.square()
+                ).exp()
+        ).prod() * stats.prior;
     }
 
+    // Find max
     double max = -1;
     size_t maxIndex = 0;
     for (size_t i = 0; i < possible_labels.size(); i++) {
