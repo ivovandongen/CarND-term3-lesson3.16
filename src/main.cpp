@@ -50,7 +50,7 @@ int main() {
     std::cout << "X_train element size " << X_train[0].size() << std::endl;
     std::cout << "Y_train number of elements " << Y_train.size() << std::endl;
 
-    GNB gnb = GNB();
+    GNB gnb(4);
 
     gnb.train(X_train, Y_train);
 

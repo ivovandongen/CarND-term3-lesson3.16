@@ -5,15 +5,46 @@
 #include <fstream>
 #include <math.h>
 #include <vector>
+#include <cassert>
+#include <numeric>
+
 
 /**
  * Initializes GNB
  */
-GNB::GNB() = default;
+
+GNB::GNB(size_t n_params_) : n_params(n_params_) {};
 
 GNB::~GNB() = default;
 
-void GNB::train(std::vector<std::vector<double>> data, std::vector<std::string> labels) {
+GNB::SamplesPerLabel GNB::segregatePerLabel(Samples data, std::vector<std::string> labels) {
+    // Some sanity checks
+    assert (!data.empty());
+    assert (data.size() == labels.size());
+    assert (data[0].size() == n_params);
+
+    // Create a map to separate the incoming samples
+    SamplesPerLabel samplesPerLabel(possible_labels.size());
+    for (auto &label : possible_labels) {
+        samplesPerLabel.emplace(label, std::vector<std::vector<double>>());
+    }
+
+    // Separate the incoming samples into the map
+    for (size_t i = 0; i < data.size(); i++) {
+        std::string &label = labels[i];
+        std::vector<double> &sample = data[i];
+
+        assert (std::find(possible_labels.begin(), possible_labels.end(), label) != possible_labels.end());
+
+        auto &totalsForLabel = samplesPerLabel[label];
+        totalsForLabel.push_back(sample);
+    }
+
+    return samplesPerLabel;
+}
+
+
+void GNB::train(Samples data, std::vector<std::string> labels) {
 
     /*
         Trains the classifier with N data points and labels.
@@ -31,6 +62,54 @@ void GNB::train(std::vector<std::vector<double>> data, std::vector<std::string> 
         labels - array of N labels
           - Each label is one of "left", "keep", or "right".
     */
+
+    // Some sanity checks
+    assert (!data.empty());
+    assert (data.size() == labels.size());
+    assert (data[0].size() == n_params);
+
+    // Create a map to separate the incoming samples
+    SamplesPerLabel samplesPerLabel = segregatePerLabel(data, labels);
+
+    // Calculate mean/stdev/prior per label
+    for (auto &label : possible_labels) {
+        const std::vector<std::vector<double>> &samplesForLabel = samplesPerLabel[label];
+        double sampleSize = samplesForLabel.size();
+
+        // In case there is no data
+        if (sampleSize == 0) {
+            std::cout << "WARN: no data for label: " << label << std::endl;
+            LabelStats stats{Eigen::ArrayXd::Zero(n_params),
+                             Eigen::ArrayXd::Zero(n_params),
+                             0};
+            statsPerLabel.emplace(label, std::move(stats));
+            continue;
+        }
+
+        // Means
+        Eigen::ArrayXd means = Eigen::ArrayXd::Zero(n_params);
+        for (const std::vector<double> &sample : samplesForLabel) {
+            assert(sample.size() == n_params);
+            means += Eigen::ArrayXd::Map(sample.data(), sample.size());
+        }
+        means /= sampleSize;
+
+        //stddev
+        Eigen::ArrayXd stddevs = Eigen::ArrayXd::Zero(n_params);
+        for (const std::vector<double> &sample : samplesForLabel) {
+            assert(sample.size() == n_params);
+            stddevs += (Eigen::ArrayXd::Map(sample.data(), sample.size()) - means).square();
+        }
+        stddevs = (stddevs / sampleSize).sqrt();
+
+        // Prior
+        double prior = sampleSize / labels.size();
+
+        // Store for prediction
+        LabelStats stats{std::move(means), std::move(stddevs), prior};
+        statsPerLabel.emplace(label, std::move(stats));
+    }
+
 }
 
 std::string GNB::predict(std::vector<double> sample) {
